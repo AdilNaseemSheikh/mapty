@@ -70,6 +70,8 @@ class App {
   #workouts = [];
   constructor() {
     this._getPosition();
+    // get data from local storage
+    this._getLocalStorage();
     form.addEventListener("submit", this._newWorkout.bind(this));
     inputType.addEventListener("change", this._toggleElevationField);
     // event delegation
@@ -107,6 +109,10 @@ class App {
 
     // without bind, this was set to #map, because that's what on addeventlistner (on) is being called
     this.#map.on("click", this._showForm.bind(this));
+    this.#workouts.forEach((work) => {
+      // here it will work because this will execute after the map being load
+      this._renderWorkoutMarker(work);
+    });
   }
   _showForm(mapE) {
     this.#mapEvent = mapE;
@@ -183,6 +189,8 @@ class App {
     // hide form and clear input fields
     // clear input fields
     this._hideForm();
+    // add workouts to local storage
+    this._setLocalStorage();
   }
   _renderWorkoutMarker(workout) {
     // const { lat, lng } = this.#mapEvent.latlng;
@@ -265,6 +273,28 @@ class App {
       pan: { duration: 1 },
     });
     workout.click();
+  }
+
+  _setLocalStorage() {
+    // now the second value in setItem must be a string. We can convert an object to string
+    localStorage.setItem("workouts", JSON.stringify(this.#workouts));
+  }
+  _getLocalStorage() {
+    // opposite of stringify is parse
+    const data = JSON.parse(localStorage.getItem("workouts"));
+    console.log(data);
+
+    if (!data) return;
+    this.#workouts = data;
+    this.#workouts.forEach((work) => {
+      this._renderWorkout(work);
+      // here this will not work because map is not yet loaded
+      // this._renderWorkoutMarker(work)
+    });
+  }
+  reset() {
+    localStorage.removeItem("workouts");
+    location.reload();
   }
 }
 
